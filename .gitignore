@@ -1,0 +1,41 @@
+# Flutter/Dart/Pub related
+.dart_tool/
+.packages
+.pub/
+build/
+
+# Generated files
+*.lock
+pubspec.lock
+
+# IntelliJ / Android Studio
+.idea/
+*.iml
+
+# VS Code
+.vscode/
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# Linux
+*.swp
+
+# Flutter build outputs
+android/.gradle/
+android/app/build/
+ios/Flutter/flutter_export_environment.sh
+ios/Pods/
+ios/Runner.xcworkspace/
+
+# Web build
+build/web/
+
+# Generated plugin files
+**/generated_plugin_registrant.*
+
+# Logs
+*.log
