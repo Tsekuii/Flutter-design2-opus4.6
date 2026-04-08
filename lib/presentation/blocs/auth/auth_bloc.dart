@@ -28,8 +28,17 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthState.loading());
     try {
       final ok = await _authRepo.login(event.email, event.password);
-      if (ok && _authRepo.currentUser != null) {
-        emit(AuthState.authenticated(_authRepo.currentUser!));
+      if (ok) {
+        final profile = await _authRepo.loadProfile();
+        final user = profile ?? _authRepo.currentUser;
+        if (user != null) {
+          emit(AuthState.authenticated(user));
+          return;
+        }
+        // If Supabase auth succeeded but we couldn't resolve our app user,
+        // we must emit a failure; otherwise the UI stays on the loading screen.
+        emit(AuthState.failure('Нэвтрэлт амжилттай боловч хэрэглэгчийн мэдээлэл олдсонгүй'));
+        return;
       } else {
         emit(AuthState.failure('Нэвтрэхэд алдаа гарлаа'));
       }
@@ -47,8 +56,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         event.displayName,
         event.classGrade,
       );
-      if (ok && _authRepo.currentUser != null) {
-        emit(AuthState.authenticated(_authRepo.currentUser!));
+      if (ok) {
+        final profile = await _authRepo.loadProfile();
+        final user = profile ?? _authRepo.currentUser;
+        if (user != null) {
+          emit(AuthState.authenticated(user));
+          return;
+        }
+        emit(AuthState.failure('Бүртгэл амжилттай боловч хэрэглэгчийн мэдээлэл олдсонгүй'));
+        return;
       } else {
         emit(AuthState.failure('Бүртгүүлэхэд алдаа гарлаа'));
       }

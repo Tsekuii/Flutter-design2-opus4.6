@@ -12,17 +12,17 @@ class ProfileRepository {
   UserModel? get currentUser => _authRepo.currentUser;
 
   Future<UserModel?> getProfile() async {
-    return _authRepo.currentUser;
+    return await _authRepo.loadProfile() ?? _authRepo.currentUser;
   }
 
   Future<void> updateClassGrade(int classGrade) async {
-    final u = _authRepo.currentUser;
+    final u = await _authRepo.loadProfile() ?? _authRepo.currentUser;
     if (u == null) return;
-    _authRepo.updateUser(u.copyWith(classGrade: classGrade));
+    await _authRepo.updateProfile(u.copyWith(classGrade: classGrade));
   }
 
   Future<void> updateProfile(UserModel user) async {
-    _authRepo.updateUser(user);
+    await _authRepo.updateProfile(user);
   }
 
   /// Achievements – mock list; unlocked state can come from backend.

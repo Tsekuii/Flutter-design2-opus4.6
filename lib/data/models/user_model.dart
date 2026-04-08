@@ -32,6 +32,51 @@ class UserModel extends Equatable {
   final int averageScorePercent;
   final int awardsCount;
 
+  /// Row from Supabase `public.profiles` (snake_case columns).
+  factory UserModel.fromSupabase(Map<String, dynamic> json) {
+    int asInt(dynamic v) {
+      if (v == null) return 0;
+      if (v is int) return v;
+      if (v is num) return v.toInt();
+      return int.tryParse(v.toString()) ?? 0;
+    }
+
+    return UserModel(
+      id: json['id'] as String,
+      displayName: json['display_name'] as String? ?? '',
+      email: json['email'] as String?,
+      avatarUrl: json['avatar_url'] as String?,
+      classGrade: asInt(json['class_grade']),
+      level: asInt(json['level']),
+      xp: asInt(json['xp']),
+      coins: asInt(json['coins']),
+      streakDays: asInt(json['streak_days']),
+      completedLessonsCount: asInt(json['completed_lessons_count']),
+      totalTimeMinutes: asInt(json['total_time_minutes']),
+      averageScorePercent: asInt(json['average_score_percent']),
+      awardsCount: asInt(json['awards_count']),
+    );
+  }
+
+  /// Fields for `profiles` update/insert (snake_case).
+  Map<String, dynamic> toSupabaseRow() {
+    return {
+      'id': id,
+      'display_name': displayName,
+      'email': email,
+      'avatar_url': avatarUrl,
+      'class_grade': classGrade,
+      'level': level,
+      'xp': xp,
+      'coins': coins,
+      'streak_days': streakDays,
+      'completed_lessons_count': completedLessonsCount,
+      'total_time_minutes': totalTimeMinutes,
+      'average_score_percent': averageScorePercent,
+      'awards_count': awardsCount,
+    };
+  }
+
   UserModel copyWith({
     String? id,
     String? displayName,

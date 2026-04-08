@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' hide AuthState;
 
 import 'core/theme/app_theme.dart';
 import 'data/repositories/auth_repository.dart';
@@ -18,8 +19,24 @@ import 'presentation/blocs/settings/settings_cubit.dart';
 import 'presentation/pages/auth_page.dart';
 import 'presentation/pages/main_shell.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  const supabaseUrl = String.fromEnvironment('SUPABASE_URL', defaultValue: '');
+  const supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY', defaultValue: '');
+  if (supabaseUrl.isEmpty || supabaseAnonKey.isEmpty) {
+    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light,
+      systemNavigationBarColor: Color(0xFF0A0E1A),
+      systemNavigationBarIconBrightness: Brightness.light,
+    ));
+    runApp(const _SupabaseConfigMissingApp());
+    return;
+  }
+
+  await Supabase.initialize(url: supabaseUrl, anonKey: supabaseAnonKey);
+
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
     statusBarIconBrightness: Brightness.light,
@@ -27,6 +44,48 @@ void main() {
     systemNavigationBarIconBrightness: Brightness.light,
   ));
   runApp(const OlimpiadApp());
+}
+
+/// Shown when the app is run without compile-time Supabase credentials (e.g. Chrome Run with no `--dart-define`).
+class _SupabaseConfigMissingApp extends StatelessWidget {
+  const _SupabaseConfigMissingApp();
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData.dark(),
+      home: Scaffold(
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: SelectableText.rich(
+              TextSpan(
+                style: const TextStyle(fontSize: 15, height: 1.4),
+                children: [
+                  const TextSpan(
+                    text: 'Supabase is not configured.\n\n'
+                        'This app needs SUPABASE_URL and SUPABASE_ANON_KEY at compile time.\n\n'
+                        'Terminal (PowerShell):\n',
+                  ),
+                  TextSpan(
+                    text: 'flutter run -d chrome `\n'
+                        '  --dart-define=SUPABASE_URL=https://YOUR_PROJECT.supabase.co `\n'
+                        '  --dart-define=SUPABASE_ANON_KEY=YOUR_ANON_KEY\n\n',
+                    style: TextStyle(color: Colors.cyan.shade200),
+                  ),
+                  const TextSpan(
+                    text: 'Or add the same --dart-define lines to .vscode/launch.json (see project template).\n\n'
+                        'After changing defines, stop the app and run a full restart (not only hot reload).',
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class OlimpiadApp extends StatelessWidget {
