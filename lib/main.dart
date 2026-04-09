@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide AuthState;
@@ -112,13 +113,24 @@ class OlimpiadApp extends StatelessWidget {
           BlocProvider(create: (_) => SettingsCubit()),
         ],
         child: BlocBuilder<SettingsCubit, SettingsState>(
-          buildWhen: (a, b) => a.themeMode != b.themeMode,
+          buildWhen: (a, b) => a.themeMode != b.themeMode || a.localeCode != b.localeCode,
           builder: (context, settings) {
-            final theme = settings.themeMode == ThemeMode.dark ? AppTheme.dark() : AppTheme.light();
             return MaterialApp(
-              title: 'Олимпиад',
+              title: settings.localeCode == 'en' ? 'Olimpiad' : 'Олимпиад',
               debugShowCheckedModeBanner: false,
-              theme: theme,
+              theme: AppTheme.light(),
+              darkTheme: AppTheme.dark(),
+              themeMode: settings.themeMode,
+              locale: Locale(settings.localeCode),
+              supportedLocales: const [
+                Locale('mn'),
+                Locale('en'),
+              ],
+              localizationsDelegates: const [
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
               home: BlocBuilder<AuthBloc, AuthState>(
                 buildWhen: (a, b) => a.status != b.status,
                 builder: (context, authState) {

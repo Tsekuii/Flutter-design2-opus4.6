@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../core/i18n/tr.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/theme/theme_ext.dart';
 import '../blocs/auth/auth_bloc.dart';
 import '../blocs/profile/profile_bloc.dart';
 import '../blocs/settings/settings_cubit.dart';
@@ -27,7 +29,7 @@ class _ProfilePageState extends State<ProfilePage> {
           builder: (context, state) {
             final user = state.user ?? context.read<AuthBloc>().state.user;
             if (user == null) {
-              return const Center(child: Text('Нэвтрэнэ үү'));
+              return Center(child: Text(context.tr('Нэвтрэнэ үү', 'Please sign in')));
             }
             return SingleChildScrollView(
               padding: const EdgeInsets.all(16),
@@ -141,7 +143,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                     Container(
                                       height: 8,
                                       decoration: BoxDecoration(
-                                        color: AppTheme.surfaceVariant,
+                                        color: context.appSurfaceVariant,
                                         borderRadius: BorderRadius.circular(6),
                                       ),
                                     ),
@@ -178,14 +180,14 @@ class _ProfilePageState extends State<ProfilePage> {
                       _StatCard(
                         icon: Icons.local_fire_department_rounded,
                         value: '${user.streakDays}',
-                        label: 'Дэс',
+                          label: context.tr('Дэс', 'Streak'),
                         gradient: AppTheme.warmGradient,
                       ),
                       const SizedBox(width: 12),
                       _StatCard(
                         icon: Icons.emoji_events_rounded,
                         value: '${user.coins}',
-                        label: 'Зоос',
+                          label: context.tr('Зоос', 'Coins'),
                         gradient: AppTheme.primaryGradient,
                       ),
                       const SizedBox(width: 12),
@@ -203,14 +205,14 @@ class _ProfilePageState extends State<ProfilePage> {
                   Row(
                     children: [
                       _ProfileTab(
-                        label: 'Явц',
+                        label: context.tr('Явц', 'Progress'),
                         icon: Icons.trending_up_rounded,
                         selected: state.activeTab == 'progress',
                         onTap: () => context.read<ProfileBloc>().add(const ProfileTabChanged('progress')),
                       ),
                       const SizedBox(width: 12),
                       _ProfileTab(
-                        label: 'Тохиргоо',
+                        label: context.tr('Тохиргоо', 'Settings'),
                         icon: Icons.settings_rounded,
                         selected: state.activeTab == 'settings',
                         onTap: () => context.read<ProfileBloc>().add(const ProfileTabChanged('settings')),
@@ -265,7 +267,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           child: const Icon(Icons.emoji_events_rounded, color: Colors.white, size: 22),
                         ),
                         const SizedBox(width: 8),
-                        Text('Амжилтууд', style: Theme.of(context).textTheme.titleMedium),
+                        Text(context.tr('Амжилтууд', 'Achievements'), style: Theme.of(context).textTheme.titleMedium),
                       ],
                     ),
                     const SizedBox(height: 12),
@@ -287,7 +289,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           return Container(
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: AppTheme.cardColor,
+                              color: context.appCard,
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
                                 color: a.isUnlocked
@@ -311,13 +313,13 @@ class _ProfilePageState extends State<ProfilePage> {
                                   height: 48,
                                   decoration: BoxDecoration(
                                     gradient: a.isUnlocked ? AppTheme.warmGradient : null,
-                                    color: a.isUnlocked ? null : AppTheme.surfaceVariant,
+                                    color: a.isUnlocked ? null : context.appSurfaceVariant,
                                     borderRadius: BorderRadius.circular(14),
                                   ),
                                   child: Icon(
                                     _achievementIcon(a.iconName),
                                     size: 24,
-                                    color: a.isUnlocked ? Colors.white : AppTheme.textMuted,
+                                    color: a.isUnlocked ? Colors.white : context.appTextMuted,
                                   ),
                                 ),
                                 const SizedBox(height: 10),
@@ -325,7 +327,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                   a.titleMn,
                                   style: Theme.of(context).textTheme.labelMedium?.copyWith(
                                         fontWeight: FontWeight.w600,
-                                        color: a.isUnlocked ? null : AppTheme.textMuted,
+                                        color: a.isUnlocked ? null : context.appTextMuted,
                                       ),
                                   textAlign: TextAlign.center,
                                   maxLines: 2,
@@ -384,7 +386,7 @@ class _StatCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
         decoration: BoxDecoration(
-          color: AppTheme.cardColor,
+          color: context.appCard,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: const Color(0xFF1E2A3D)),
         ),
@@ -433,7 +435,7 @@ class _ProfileTab extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
             gradient: selected ? AppTheme.primaryGradient : null,
-            color: selected ? null : AppTheme.surfaceVariant,
+            color: selected ? null : context.appSurfaceVariant,
             borderRadius: BorderRadius.circular(14),
             border: selected ? null : Border.all(color: const Color(0xFF1E2A3D)),
             boxShadow: selected
@@ -448,12 +450,12 @@ class _ProfileTab extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 18, color: selected ? Colors.white : AppTheme.textSecondary),
+              Icon(icon, size: 18, color: selected ? Colors.white : context.appTextSecondary),
               const SizedBox(width: 8),
               Text(
                 label,
                 style: TextStyle(
-                  color: selected ? Colors.white : AppTheme.textSecondary,
+                  color: selected ? Colors.white : context.appTextSecondary,
                   fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                   fontSize: 14,
                 ),
@@ -484,7 +486,7 @@ class _MetricCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.cardColor,
+        color: context.appCard,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: const Color(0xFF1E2A3D)),
       ),
@@ -527,7 +529,7 @@ class _SettingsSection extends StatelessWidget {
       children: [
         // Language
         _SettingsGroup(
-          title: 'Хэл',
+          title: context.tr('Хэл', 'Language'),
           icon: Icons.language_rounded,
           child: Row(
             children: [
@@ -548,20 +550,26 @@ class _SettingsSection extends StatelessWidget {
         const SizedBox(height: 16),
         // Theme
         _SettingsGroup(
-          title: 'Загвар',
+          title: context.tr('Загвар', 'Theme'),
           icon: Icons.palette_outlined,
           child: Row(
             children: [
               _SettingsChip(
-                label: '🌙 Харанхуй',
+                label: context.tr('🌙 Харанхуй', '🌙 Dark'),
                 selected: settings.themeMode == ThemeMode.dark,
                 onTap: () => context.read<SettingsCubit>().setThemeMode(ThemeMode.dark),
               ),
               const SizedBox(width: 10),
               _SettingsChip(
-                label: '☀️ Гэрэл',
+                label: context.tr('☀️ Гэрэл', '☀️ Light'),
                 selected: settings.themeMode == ThemeMode.light,
                 onTap: () => context.read<SettingsCubit>().setThemeMode(ThemeMode.light),
+              ),
+              const SizedBox(width: 10),
+              _SettingsChip(
+                label: context.tr('📱 Систем', '📱 System'),
+                selected: settings.themeMode == ThemeMode.system,
+                onTap: () => context.read<SettingsCubit>().setThemeMode(ThemeMode.system),
               ),
             ],
           ),
@@ -574,7 +582,7 @@ class _SettingsSection extends StatelessWidget {
           child: OutlinedButton.icon(
             onPressed: () => context.read<AuthBloc>().add(AuthLogoutRequested()),
             icon: const Icon(Icons.logout_rounded, size: 20),
-            label: const Text('Гарах'),
+            label: Text(context.tr('Гарах', 'Logout')),
             style: OutlinedButton.styleFrom(
               foregroundColor: AppTheme.errorRed,
               side: BorderSide(color: AppTheme.errorRed.withValues(alpha: 0.3)),
@@ -603,7 +611,7 @@ class _SettingsGroup extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.cardColor,
+        color: context.appCard,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: const Color(0xFF1E2A3D)),
       ),
@@ -612,7 +620,7 @@ class _SettingsGroup extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(icon, size: 18, color: AppTheme.textSecondary),
+              Icon(icon, size: 18, color: context.appTextSecondary),
               const SizedBox(width: 8),
               Text(
                 title,
@@ -644,7 +652,7 @@ class _SettingsChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
         decoration: BoxDecoration(
           gradient: selected ? AppTheme.primaryGradient : null,
-          color: selected ? null : AppTheme.surfaceVariant,
+          color: selected ? null : context.appSurfaceVariant,
           borderRadius: BorderRadius.circular(12),
           border: selected ? null : Border.all(color: const Color(0xFF1E2A3D)),
           boxShadow: selected
@@ -659,7 +667,7 @@ class _SettingsChip extends StatelessWidget {
         child: Text(
           label,
           style: TextStyle(
-            color: selected ? Colors.white : AppTheme.textSecondary,
+            color: selected ? Colors.white : context.appTextSecondary,
             fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
             fontSize: 13,
           ),

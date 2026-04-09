@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../core/constants/app_constants.dart';
+import '../../core/data/grade_lessons_data.dart';
+import '../../core/i18n/tr.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/theme/theme_ext.dart';
 import '../../core/utils/responsive.dart';
-import '../../data/models/subject_model.dart';
 import '../blocs/auth/auth_bloc.dart';
 import '../blocs/lesson/lesson_bloc.dart';
 import 'auth_page.dart';
-import 'lesson_unit_page.dart';
+import 'lesson_interactive_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -84,8 +86,6 @@ class _HomeBody extends StatelessWidget {
       child: BlocBuilder<LessonBloc, LessonState>(
         builder: (context, state) {
           final selectedClass = state.selectedClass;
-          final subjects = state.subjects;
-          final loading = state.loading;
           return ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 600),
             child: Column(
@@ -107,7 +107,7 @@ class _HomeBody extends StatelessWidget {
                     _QuickStat(
                       icon: Icons.local_fire_department_rounded,
                       value: '$streakDays',
-                      label: 'Дэс',
+                  label: context.tr('Дэс', 'Streak'),
                       gradient: AppTheme.warmGradient,
                     ),
                     const SizedBox(width: 12),
@@ -121,111 +121,88 @@ class _HomeBody extends StatelessWidget {
                     _QuickStat(
                       icon: Icons.emoji_events_rounded,
                       value: '$level',
-                      label: 'Түвшин',
+                  label: context.tr('Түвшин', 'Level'),
                       gradient: AppTheme.purpleGradient,
                     ),
                   ],
                 ),
                 const SizedBox(height: 28),
 
-                // Class selector
-                Text(
-                  'Анги сонгох',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                const SizedBox(height: 12),
-                SizedBox(
-                  height: 42,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: AppConstants.maxClass - AppConstants.minClass + 1,
-                    itemBuilder: (context, i) {
-                      final grade = AppConstants.minClass + i;
-                      final selected = grade == selectedClass;
-                      return Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: GestureDetector(
-                          onTap: () => context.read<LessonBloc>().add(LessonClassSelected(grade)),
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 200),
-                            padding: const EdgeInsets.symmetric(horizontal: 20),
-                            decoration: BoxDecoration(
-                              gradient: selected ? AppTheme.primaryGradient : null,
-                              color: selected ? null : AppTheme.surfaceVariant,
-                              borderRadius: BorderRadius.circular(12),
-                              border: selected
-                                  ? null
-                                  : Border.all(color: const Color(0xFF1E2A3D)),
-                              boxShadow: selected
-                                  ? [
-                                      BoxShadow(
-                                        color: AppTheme.accentCyan.withValues(alpha: 0.25),
-                                        blurRadius: 12,
-                                        offset: const Offset(0, 2),
-                                      ),
-                                    ]
-                                  : null,
-                            ),
-                            child: Center(
-                              child: Text(
-                                '$grade',
-                                style: TextStyle(
-                                  color: selected ? Colors.white : AppTheme.textSecondary,
-                                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
-                    },
+                // Clickable "Анги сонгох" bar -> "Хичээлүүд" topic -> lessons list
+                ExpansionTile(
+                  key: const PageStorageKey('angi_songoh'),
+                  maintainState: true,
+                  title: Text(
+                    context.tr('Анги сонгох', 'Select grade'),
+                    style: Theme.of(context).textTheme.titleMedium,
                   ),
-                ),
-                const SizedBox(height: 28),
-
-                // Subjects header
-                Row(
                   children: [
-                    Text(
-                      'Хичээлүүд',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const Spacer(),
-                    if (subjects.isNotEmpty)
-                      Text(
-                        '${subjects.length} хичээл',
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-
-                if (loading)
-                  const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(32),
-                      child: CircularProgressIndicator(),
-                    ),
-                  )
-                else if (subjects.isEmpty)
-                  _EmptyState()
-                else
-                  ...subjects.asMap().entries.map((entry) => _SubjectCard(
-                        subject: entry.value,
-                        index: entry.key,
-                        onTap: () {
-                          context.read<LessonBloc>().add(LessonSubjectSelected(entry.value));
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => BlocProvider.value(
-                                value: context.read<LessonBloc>(),
-                                child: const LessonUnitPage(),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      height: 42,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: AppConstants.maxClass - AppConstants.minClass + 1,
+                        itemBuilder: (context, i) {
+                          final grade = AppConstants.minClass + i;
+                          final selected = grade == selectedClass;
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: GestureDetector(
+                              onTap: () => context.read<LessonBloc>().add(LessonClassSelected(grade)),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                padding: const EdgeInsets.symmetric(horizontal: 20),
+                                decoration: BoxDecoration(
+                                  gradient: selected ? AppTheme.primaryGradient : null,
+                                  color: selected ? null : AppTheme.surfaceVariant,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: selected
+                                      ? null
+                                      : Border.all(color: const Color(0xFF1E2A3D)),
+                                  boxShadow: selected
+                                      ? [
+                                          BoxShadow(
+                                            color: AppTheme.accentCyan.withValues(alpha: 0.25),
+                                            blurRadius: 12,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                        ]
+                                      : null,
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    '$grade',
+                                    style: TextStyle(
+                                      color: selected ? Colors.white : AppTheme.textSecondary,
+                                      fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
                           );
                         },
-                      )),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    ExpansionTile(
+                      key: PageStorageKey('hiceeluud_$selectedClass'),
+                      maintainState: true,
+                      title: Text(
+                        context.tr('Хичээлүүд', 'Subjects'),
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 8, 12, 14),
+                          child: _GradeLessonsList(grade: selectedClass),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ],
             ),
           );
@@ -281,9 +258,9 @@ class _WelcomeHero extends StatelessWidget {
                 Row(
                   children: [
                     Text(
-                      'Сайн байна уу',
+                      context.tr('Сайн байна уу', 'Hello'),
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: AppTheme.textSecondary,
+                            color: context.appTextSecondary,
                           ),
                     ),
                     const SizedBox(width: 4),
@@ -305,7 +282,7 @@ class _WelcomeHero extends StatelessWidget {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    'Түвшин $level',
+                    context.tr('Түвшин $level', 'Level $level'),
                     style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.w600,
@@ -385,113 +362,6 @@ class _QuickStat extends StatelessWidget {
   }
 }
 
-const _subjectIcons = [
-  Icons.calculate_rounded,
-  Icons.science_rounded,
-  Icons.language_rounded,
-  Icons.public_rounded,
-  Icons.music_note_rounded,
-  Icons.brush_rounded,
-  Icons.computer_rounded,
-  Icons.biotech_rounded,
-];
-
-const _subjectGradients = [
-  AppTheme.primaryGradient,
-  AppTheme.purpleGradient,
-  AppTheme.warmGradient,
-  AppTheme.successGradient,
-  AppTheme.primaryGradient,
-  AppTheme.purpleGradient,
-  AppTheme.warmGradient,
-  AppTheme.successGradient,
-];
-
-class _SubjectCard extends StatelessWidget {
-  const _SubjectCard({
-    required this.subject,
-    required this.index,
-    required this.onTap,
-  });
-
-  final SubjectModel subject;
-  final int index;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final gradient = _subjectGradients[index % _subjectGradients.length];
-    final icon = _subjectIcons[index % _subjectIcons.length];
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Material(
-        color: AppTheme.cardColor,
-        borderRadius: BorderRadius.circular(16),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(16),
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFF1E2A3D)),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 52,
-                  height: 52,
-                  decoration: BoxDecoration(
-                    gradient: gradient,
-                    borderRadius: BorderRadius.circular(14),
-                    boxShadow: [
-                      BoxShadow(
-                        color: gradient.colors.first.withValues(alpha: 0.3),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Icon(icon, color: Colors.white, size: 26),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        subject.nameMn,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${subject.classGrade}-р анги',
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: AppTheme.surfaceVariant,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Icon(Icons.arrow_forward_ios_rounded, size: 14),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _EmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -503,17 +373,119 @@ class _EmptyState extends StatelessWidget {
             Icon(
               Icons.menu_book_outlined,
               size: 64,
-              color: AppTheme.textMuted,
+              color: context.appTextMuted,
             ),
             const SizedBox(height: 16),
             Text(
-              'Энэ ангид хичээл байхгүй байна',
+              context.tr('Энэ ангид хичээл байхгүй байна', 'No lessons for this grade yet'),
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppTheme.textMuted,
+                    color: context.appTextMuted,
                   ),
               textAlign: TextAlign.center,
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _GradeLessonsList extends StatelessWidget {
+  const _GradeLessonsList({required this.grade});
+
+  final int grade;
+
+  static final _chipColors = <Color>[
+    AppTheme.accentCyan,
+    AppTheme.accentBlue,
+    AppTheme.accentPurple,
+    AppTheme.accentPink,
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final lessons = GradeLessonsData.getLessonsForGrade(grade);
+    if (lessons.isEmpty) return _EmptyState();
+
+    final groups = lessons.entries.toList();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: groups.asMap().entries.map((entry) {
+        final groupIndex = entry.key;
+        final subject = entry.value.key;
+        final topics = entry.value.value;
+        final baseColor = _chipColors[groupIndex % _chipColors.length];
+
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                subject,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+              ),
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 8,
+                runSpacing: 6,
+                children: topics.map((t) {
+                  return _LessonChip(
+                    label: t,
+                    color: baseColor,
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => LessonInteractivePage(
+                            grade: grade,
+                            subject: subject,
+                            topic: t,
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
+    );
+  }
+}
+
+class _LessonChip extends StatelessWidget {
+  const _LessonChip({required this.label, required this.color, required this.onTap});
+
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: color.withValues(alpha: 0.22)),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              color: color,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ),
       ),
     );
