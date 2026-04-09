@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/models/question_model.dart';
+import '../../data/service/progress_service.dart';
 
 class QuizPlayPage extends StatefulWidget {
   const QuizPlayPage({
@@ -8,17 +9,22 @@ class QuizPlayPage extends StatefulWidget {
     required this.title,
     this.questionCount = 5,
     this.questions,
+    this.lobbyId,
   });
 
   final String title;
   final int questionCount;
   final List<QuestionModel>? questions;
+  final String? lobbyId;
 
   @override
   State<QuizPlayPage> createState() => _QuizPlayPageState();
 }
 
 class _QuizPlayPageState extends State<QuizPlayPage> {
+  final _progressService = ProgressService();
+  ProgressResult? _progressResult;
+
   int _currentIndex = 0;
   int _correctCount = 0;
   int? _selectedIndex;
@@ -70,8 +76,22 @@ class _QuizPlayPageState extends State<QuizPlayPage> {
     });
   }
 
-  void _finish() {
+  void _finish() async {
     final score = (_correctCount / _questions.length * 100).round();
+
+    final result = await _progressService.onQuizCompleted(
+      scorePercent: score,
+      questionCount: _questions.length,
+      lobbyId: widget.lobbyId,
+    );
+
+    if (!mounted) return;
+
+    setState(() {
+      _progressResult = result;
+    });
+    final rewards = _progressResult ?? result;
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -126,6 +146,26 @@ class _QuizPlayPageState extends State<QuizPlayPage> {
                 '${_questions.length}-аас $_correctCount зөв',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppTheme.textSecondary),
               ),
+              if (rewards.xpEarned > 0) ...[
+                const SizedBox(height: 8),
+                Text(
+                  '+${rewards.xpEarned} XP  +${rewards.coinsEarned} 🪙',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppTheme.accentCyan,
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+              ],
+              if (rewards.leveledUp) ...[
+                const SizedBox(height: 6),
+                Text(
+                  '🎉 Level ${rewards.newLevel} боллоо!',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppTheme.successGreen,
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+              ],
               const SizedBox(height: 24),
               Row(
                 children: [

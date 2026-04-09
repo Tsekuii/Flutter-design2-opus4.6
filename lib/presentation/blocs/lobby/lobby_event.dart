@@ -43,3 +43,4 @@ class LobbyTabChanged extends LobbyEvent {
   @override
   List<Object?> get props => [tab];
 }
+class LobbyRealtimeUpdate extends LobbyEvent {}

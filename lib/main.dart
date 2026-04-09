@@ -107,7 +107,7 @@ class OlimpiadApp extends StatelessWidget {
           BlocProvider(create: (_) => AppNavBloc()),
           BlocProvider(create: (c) => LessonBloc(c.read<LessonRepository>())),
           BlocProvider(create: (c) => QuizCreateBloc(c.read<QuizRepository>())),
-          BlocProvider(create: (c) => LobbyBloc(c.read<LobbyRepository>())),
+          BlocProvider(create: (c) => LobbyBloc(c.read<LobbyRepository>())..startRealtime()),
           BlocProvider(create: (c) => ProfileBloc(c.read<ProfileRepository>())),
           BlocProvider(create: (_) => SettingsCubit()),
         ],

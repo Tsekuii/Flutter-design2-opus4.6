@@ -7,33 +7,39 @@ class MyChatBot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Load this at runtime so you don't check secrets into git.
-    //
-    // Run:
-    // flutter run --dart-define=GEMINI_API_KEY=YOUR_KEY
     const apiKey = String.fromEnvironment('GEMINI_API_KEY');
 
     final model = GenerativeModel(
       model: 'gemini-1.5-flash',
       apiKey: apiKey,
       systemInstruction: Content.system(
-        'You are a helpful travel assistant for Flutter developers.',
+        '''Чи Монгол сурагчдад зориулсан AI сурах туслагч юм.
+        
+Чиний үүрэг:
+- Математик, Физик, Монгол хэл, Англи хэл, Түүх, Мэдээлэл зүй хичээлүүдийг тайлбарлах
+- Асуултад тодорхой, ойлгомжтой хариулт өгөх
+- Жишээ бодлого шийдэж үзүүлэх
+- Монгол болон Англи хэлээр харилцах
+- Хичээлийн агуулгаас гадна хариулт өгөхгүй байх
+
+Хариулах хэлбэр:
+- Богино, тодорхой байх
+- Шаардлагатай бол алхам алхмаар тайлбарлах
+- Дүгнэлт хийхдээ "Тиймээс..." гэж эхлэх''',
       ),
     );
 
     return Scaffold(
-      appBar: AppBar(title: const Text('AI Assistant')),
+      appBar: AppBar(title: const Text('AI Туслагч')),
       body: LlmChatView(
-        // Streaming is supported by the toolkit and will show tokens as generated.
         provider: GeminiProvider(model: model),
         onErrorCallback: (context, error) {
-          final messenger = ScaffoldMessenger.maybeOf(context);
-          messenger?.showSnackBar(
+          ScaffoldMessenger.maybeOf(context)?.showSnackBar(
             SnackBar(
               content: Text(
                 apiKey.isEmpty
-                    ? 'Missing API key. Run with --dart-define=GEMINI_API_KEY=...'
-                    : 'Chat error: $error',
+                    ? 'GEMINI_API_KEY тохируулаагүй байна. --dart-define=GEMINI_API_KEY=... гэж ажиллуулна уу'
+                    : 'Алдаа: $error',
               ),
             ),
           );
@@ -42,4 +48,3 @@ class MyChatBot extends StatelessWidget {
     );
   }
 }
-

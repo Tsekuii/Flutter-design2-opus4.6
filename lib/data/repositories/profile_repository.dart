@@ -2,32 +2,39 @@ import '../models/user_model.dart';
 import '../models/achievement_model.dart';
 import '../models/history_item_model.dart';
 import 'auth_repository.dart';
+import '../service/progress_service.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-/// Profile and progress. New users start with all progress at zero.
 class ProfileRepository {
   ProfileRepository(this._authRepo);
 
   final AuthRepository _authRepo;
+  final _supabase = Supabase.instance.client;
+  final _progressService = ProgressService();
 
-  UserModel? get currentUser => _authRepo.currentUser;
-
+  // Load profile fresh from Supabase every time
   Future<UserModel?> getProfile() async {
-    return await _authRepo.loadProfile() ?? _authRepo.currentUser;
+    return await _authRepo.loadProfile();
   }
 
   Future<void> updateClassGrade(int classGrade) async {
-    final u = await _authRepo.loadProfile() ?? _authRepo.currentUser;
-    if (u == null) return;
-    await _authRepo.updateProfile(u.copyWith(classGrade: classGrade));
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) return;
+    await _supabase
+        .from('profiles')
+        .update({'class_grade': classGrade})
+        .eq('id', userId);
   }
 
   Future<void> updateProfile(UserModel user) async {
-    await _authRepo.updateProfile(user);
+    await _supabase
+        .from('profiles')
+        .update(user.toSupabaseRow())
+        .eq('id', user.id);
   }
 
-  /// Achievements – mock list; unlocked state can come from backend.
   Future<List<AchievementModel>> getAchievements() async {
-    final u = _authRepo.currentUser;
+    final u = await getProfile();
     final completed = u?.completedLessonsCount ?? 0;
     return [
       AchievementModel(id: 'a1', titleMn: 'Анхны алхам', descriptionMn: 'Эхний хичээлээ дуусгах', iconName: 'target', isUnlocked: completed >= 1),
@@ -38,8 +45,29 @@ class ProfileRepository {
     ];
   }
 
+  // History = last 20 completed lessons from Supabase
   Future<List<HistoryItemModel>> getHistory() async {
-    // Mock: empty for new user (progress starts at zero / no history)
-    return [];
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) return [];
+    try {
+      final data = await _supabase
+          .from('lesson_progress')
+          .select('node_id, completed_at')
+          .eq('user_id', userId)
+          .eq('is_completed', true)
+          .order('completed_at', ascending: false)
+          .limit(20);
+      return (data as List).map((e) => HistoryItemModel(
+        id: e['node_id'] as String,
+        titleMn: e['node_id'] as String, // you can join with lesson_nodes later
+        completedAt: DateTime.parse(e['completed_at']),
+      )).toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  Future<List<UserModel>> getLeaderboard() async {
+    return _progressService.getLeaderboard();
   }
 }

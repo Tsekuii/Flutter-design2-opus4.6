@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import '../../../data/models/lobby_model.dart';
 import '../../../data/repositories/lobby_repository.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 part 'lobby_event.dart';
 part 'lobby_state.dart';
@@ -13,9 +14,18 @@ class LobbyBloc extends Bloc<LobbyEvent, LobbyState> {
     on<LobbyCreateRequested>(_onCreate);
     on<LobbyJoinByPinRequested>(_onJoinByPin);
     on<LobbyTabChanged>(_onTabChanged);
+    on<LobbyRealtimeUpdate>(_onRealtimeUpdate);
   }
 
   final LobbyRepository _lobbyRepo;
+  RealtimeChannel? _realtimeChannel;
+
+  void startRealtime() {
+    _realtimeChannel?.unsubscribe();
+    _realtimeChannel = _lobbyRepo.subscribeToLobbyList(
+      onUpdate: () => add(LobbyRealtimeUpdate()),
+    );
+  }
 
   Future<void> _onLoadOpen(LobbyLoadOpenRequested event, Emitter<LobbyState> emit) async {
     emit(state.copyWith(loading: true));
@@ -60,5 +70,19 @@ class LobbyBloc extends Bloc<LobbyEvent, LobbyState> {
 
   void _onTabChanged(LobbyTabChanged event, Emitter<LobbyState> emit) {
     emit(state.copyWith(activeTab: event.tab));
+  }
+
+  Future<void> _onRealtimeUpdate(
+    LobbyRealtimeUpdate event,
+    Emitter<LobbyState> emit,
+  ) async {
+    final list = await _lobbyRepo.getOpenLobbies(search: state.search);
+    emit(state.copyWith(openLobbies: list));
+  }
+
+  @override
+  Future<void> close() {
+    _realtimeChannel?.unsubscribe();
+    return super.close();
   }
 }
